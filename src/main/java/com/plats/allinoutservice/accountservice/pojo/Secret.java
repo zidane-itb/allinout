@@ -13,6 +13,7 @@ public class Secret {
     @Id
     private String secretString;
     private String username;
+    private boolean active;
 
     public Secret(String secretString, String username) {
         this.secretString = secretString;
@@ -20,5 +21,13 @@ public class Secret {
     }
 
     public Secret() {
+    }
+
+    public void setActive(byte active) {
+        this.active = active != 0;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }

@@ -53,12 +53,8 @@ public class AccountService {
         String username = account.getUsername();
         String password = account.getPassword();
 
-        if (username.equals(null) || password.equals(null)) {
-            throw new AccountCredentialsNotAvailableException();
-        }
-
         Account accountVerifier = accountRepository.findById(username)
-                                    .orElseThrow(() -> new WrongAccountCredentialsException());
+                                    .orElseThrow(WrongAccountCredentialsException::new);
 
         if (secretRepository.existsSecretByUsername(username)) {
             throw new AlreadyLoggedInException();
@@ -87,22 +83,26 @@ public class AccountService {
     }
 
     private boolean verifyRoleAdminBySecretString(String secretString){
-        Secret secretRow = secretRepository.findById(secretString)
-                                .orElseThrow(() -> new AccountInvalidException());
+        Secret secretRow = verifyActiveAndGetSecret(secretString);
 
         String accountUsername = secretRow.getUsername();
         Account verifyingAccount = accountRepository.findById(accountUsername)
-                                    .orElseThrow(() -> new AccountInvalidException());
+                                    .orElseThrow(AccountInvalidException::new);
 
-        if (verifyingAccount.isAdmin()) return true;
+        return verifyingAccount.isAdmin();
+    }
 
-        return false;
+    private Secret verifyActiveAndGetSecret(String secretString) {
+        Secret secretRow = secretRepository.findById(secretString)
+                                .orElseThrow(AccountInvalidException::new);
+
+        if (!secretRow.isActive()) throw new SecretStringExpiredException();
+
+        return secretRow;
     }
 
     public List<Account> getAllAccounts() {
-        System.out.println(accountRepository.count());
-        List<Account> arr = Streamable.of(accountRepository.findAll()).toList();
-        return arr;
+        return Streamable.of(accountRepository.findAll()).toList();
     }
 
 }
