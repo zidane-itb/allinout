@@ -5,5 +5,5 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface SecretRepository extends CrudRepository<Secret, String> {
 
-    boolean existsSecretByUsername(String username);
+    boolean existsSecretByUsernameAndActiveIsTrue(String username);
 }
