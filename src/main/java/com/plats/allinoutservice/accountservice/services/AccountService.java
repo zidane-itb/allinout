@@ -48,7 +48,7 @@ public class AccountService {
     @LoginLog
     @GenerateSecrets
     public LoginResponse login(Account account) throws AccountCredentialsNotAvailableException,
-            WrongAccountCredentialsException {
+                                                        WrongAccountCredentialsException {
 
         String username = account.getUsername();
         String password = account.getPassword();
@@ -56,15 +56,22 @@ public class AccountService {
         Account accountVerifier = accountRepository.findById(username)
                                     .orElseThrow(WrongAccountCredentialsException::new);
 
-        if (secretRepository.existsSecretByUsername(username)) {
+        if (secretRepository.existsSecretByUsernameAndActiveIsTrue(username)) {
             throw new AlreadyLoggedInException();
         }
 
         if (passwordUtil.checkPassword(password, accountVerifier.getPassword())) {
-            return new LoginResponse(true, username);
+            return new LoginResponse(username);
         }
 
         throw new WrongAccountCredentialsException();
+    }
+
+    public void logout(Secret secret) {
+        if (!secretRepository.existsById(secret.getSecretString())) throw new AccountInvalidException();
+
+        secret.setActive(false);
+        secretRepository.save(secret);
     }
 
     @HashCredential
@@ -100,6 +107,7 @@ public class AccountService {
 
         return secretRow;
     }
+
 
     public List<Account> getAllAccounts() {
         return Streamable.of(accountRepository.findAll()).toList();
