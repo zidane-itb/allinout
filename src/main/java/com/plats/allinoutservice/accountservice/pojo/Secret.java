@@ -1,5 +1,7 @@
 package com.plats.allinoutservice.accountservice.pojo;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,6 +10,7 @@ import javax.persistence.Id;
 
 @Entity
 @Getter @Setter
+@AllArgsConstructor
 public class Secret {
 
     @Id
@@ -15,19 +18,6 @@ public class Secret {
     private String username;
     private boolean active;
 
-    public Secret(String secretString, String username) {
-        this.secretString = secretString;
-        this.username = username;
-    }
-
     public Secret() {
-    }
-
-    public void setActive(byte active) {
-        this.active = active != 0;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
     }
 }
