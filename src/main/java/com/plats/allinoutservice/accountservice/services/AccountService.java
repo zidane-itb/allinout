@@ -11,14 +11,15 @@ import com.plats.allinoutservice.accountservice.aspects.LoginLog;
 import com.plats.allinoutservice.accountservice.aspects.SignUpLog;
 import com.plats.allinoutservice.accountservice.pojo.Account;
 import com.plats.allinoutservice.accountservice.repositories.AccountRepository;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.util.Streamable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@Log4j2
 public class AccountService {
 
     private final PasswordUtil passwordUtil;
@@ -47,8 +48,7 @@ public class AccountService {
 
     @LoginLog
     @GenerateSecrets
-    public LoginResponse login(Account account) throws AccountCredentialsNotAvailableException,
-                                                        WrongAccountCredentialsException {
+    public LoginResponse login(Account account) throws WrongAccountCredentialsException {
 
         String username = account.getUsername();
         String password = account.getPassword();
@@ -56,19 +56,19 @@ public class AccountService {
         Account accountVerifier = accountRepository.findById(username)
                                     .orElseThrow(WrongAccountCredentialsException::new);
 
-        if (secretRepository.existsSecretByUsernameAndActiveIsTrue(username)) {
+        if (secretRepository.existsSecretByUsernameAndActiveIsTrue(username))
             throw new AlreadyLoggedInException();
-        }
 
-        if (passwordUtil.checkPassword(password, accountVerifier.getPassword())) {
+        if (passwordUtil.checkPassword(password, accountVerifier.getPassword()))
             return new LoginResponse(username);
-        }
+
 
         throw new WrongAccountCredentialsException();
     }
 
     public void logout(Secret secret) {
-        if (!secretRepository.existsById(secret.getSecretString())) throw new AccountInvalidException();
+        if (!secretRepository.existsSecretByUsernameAndActiveIsTrue(secret.getUsername()))
+            throw new AccountInvalidException();
 
         secret.setActive(false);
         secretRepository.save(secret);
@@ -107,7 +107,6 @@ public class AccountService {
 
         return secretRow;
     }
-
 
     public List<Account> getAllAccounts() {
         return Streamable.of(accountRepository.findAll()).toList();
