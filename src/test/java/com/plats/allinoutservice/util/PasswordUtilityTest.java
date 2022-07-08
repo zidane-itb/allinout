@@ -24,7 +24,6 @@ public class PasswordUtilityTest {
         String password2 = "admin";
 
         String hashedpassword2 = passwordUtil.hashPassword(password2);
-        System.out.println(hashedpassword2.length());
 
         assertAll(() -> assertThat(password1).isEqualTo(password2),
                   () -> assertThat(passwordUtil.checkPassword(password1, hashedpassword2)).isTrue());
