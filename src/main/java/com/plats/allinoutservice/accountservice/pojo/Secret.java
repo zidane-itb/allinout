@@ -1,23 +1,18 @@
 package com.plats.allinoutservice.accountservice.pojo;
 
-import com.fasterxml.jackson.annotation.JsonSetter;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
-@Entity
-@Getter @Setter
-@AllArgsConstructor
+@Entity @Data
+@AllArgsConstructor @NoArgsConstructor
 public class Secret {
 
-    @Id
+    @Id @JsonProperty("secret_string")
     private String secretString;
     private String username;
     private boolean active;
 
-    public Secret() {
-    }
 }
