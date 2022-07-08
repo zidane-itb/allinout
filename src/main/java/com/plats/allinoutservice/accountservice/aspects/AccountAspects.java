@@ -5,7 +5,7 @@ import com.plats.allinoutservice.accountservice.repositories.SecretRepository;
 import com.plats.allinoutservice.accountservice.util.PasswordUtil;
 import com.plats.allinoutservice.accountservice.pojo.Account;
 import com.plats.allinoutservice.accountservice.pojo.LoginResponse;
-import lombok.extern.java.Log;
+import lombok.extern.log4j.Log4j2;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -16,15 +16,13 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
-import java.util.logging.Logger;
 
-@Aspect
-@Component
+@Aspect @Component
+@Log4j2
 public class AccountAspects {
 
     private final PasswordUtil passwordUtil;
     private final SecretRepository secretRepository;
-    private Logger logger = Logger.getLogger(AccountAspects.class.getName());
 
     public AccountAspects(PasswordUtil passwordUtil, SecretRepository secretRepository) {
         this.passwordUtil = passwordUtil;
@@ -33,12 +31,12 @@ public class AccountAspects {
 
     @Before("@annotation(com.plats.allinoutservice.accountservice.aspects.LoginLog)")
     @Order(2)
-    public void logLogin(JoinPoint joinPoint) throws Throwable {
+    public void logLogin(JoinPoint joinPoint) {
         Object[] params = joinPoint.getArgs();
         Account account = (Account) params[0];
         String username = account.getUsername();
 
-        logger.info("Login try detected with username: " + username);
+        log.info("Login try detected with username: " + username);
 
 
     }
@@ -54,9 +52,7 @@ public class AccountAspects {
         account = account.changeAccountToHashed(hashedPassword);
         Object[] newArgs = {account};
 
-        LoginResponse loginResponse = (LoginResponse) joinPoint.proceed(newArgs);
-
-        return loginResponse;
+        return (LoginResponse) joinPoint.proceed(newArgs);
     }
 
     @AfterReturning(value = "@annotation(com.plats.allinoutservice.accountservice.aspects.GenerateSecrets)",
@@ -64,9 +60,8 @@ public class AccountAspects {
     public void generateSecrets_forLogin(JoinPoint joinPoint, Object response) {
         String secretString = UUID.randomUUID().toString();
         if (response instanceof LoginResponse) {
-            response = (LoginResponse) response;
             ((LoginResponse) response).setSecretString(secretString);
-            secretRepository.save(new Secret(secretString, ((LoginResponse) response).getUsername()));
+            secretRepository.save(new Secret(secretString, ((LoginResponse) response).getUsername(), true));
         }
 
     }
@@ -78,7 +73,7 @@ public class AccountAspects {
         Account account = (Account) params[0];
         String usernameRegister = account.getUsername();
 
-        logger.info("Signup detected with username: " + usernameRegister);
+        log.info("Signup detected with username: " + usernameRegister);
     }
 
 
